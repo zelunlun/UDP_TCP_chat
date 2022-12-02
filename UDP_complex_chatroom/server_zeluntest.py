@@ -18,7 +18,7 @@ class server_test():
         while True:
             data, address = self.sock.recvfrom(self.__MAXBYTES)     # <- data is a bytes, address is our IP information
             print('已開啟Thread...') 
-            threading.Thread(target=self.handle_message, args=(data, address)).start()
+            threading.Thread(target=self.handle_text, args=(data, address)).start()
     def handle_text(self, data, address):
         # while True:
             # try:
@@ -39,8 +39,8 @@ class server_test():
         
         match message['type']:
             case 1:
-                self.nickname = message['nickname']
-                self.client[self.nickname] = address
+                nickname = message['nickname']
+                self.client[nickname] = address
                 
                 print(f"Case 1's :{self.client}")
                 """
@@ -59,7 +59,7 @@ class server_test():
                 self.sock.sendto(text, address)
                 msgdic = {
                     'type': 5,
-                    'nickname':self.nickname,
+                    'nickname':message['nickname'],
                     'message': message['message']
                 }                
                 text = json.dumps(msgdic).encode('utf-8')
@@ -67,7 +67,19 @@ class server_test():
                     if client != address:
                         self.sock.sendto(text, client)
                         print(f'Transport {text}, {client}')
-
+            case 7:
+                self.client.pop(message['nickname'])
+                Leave_message = f"{message['nickname']} is Leaving..."
+                msgdic = {
+                    'type':8,
+                    'message':Leave_message
+                }
+                text = json.dumps(msgdic).encode('utf-8')
+                for client in self.client.values():
+                    self.sock.sendto(text, client)
+                    print(f'Leaving Message!!!!!')
+        # if self.client == {}:
+        #     break
 server = server_test()
 server.start()
 

@@ -10,6 +10,17 @@ def send_message():
     print('執行緒send_message開始')
     while(True):
         msg = input("請輸入訊息: ")
+
+        #  離開
+        if msg == "esc":
+            msgdic = {
+            'type':7,
+            'nickname':nickname
+            }
+            text = json.dumps(msgdic).encode('utf-8')
+            sock.sendto(text, server_addr)    
+            break
+        
         msgdic = {
             'type':3,
             'nickname':nickname,
@@ -30,7 +41,8 @@ def recv_message():
                 pass
             case 5:
                 print(f"{msgdict['nickname']} says : {msgdict['message']}")
-                
+            case 8:
+                print(f"{msgdict['message']}")
 
 # 請使用者輸入他的nickname
 nickname = input('請輸入你留言時的綽號/別名：')
