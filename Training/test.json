@@ -1,0 +1,16 @@
+[
+    {
+        "name":"Amy",
+        "age":20,
+        "married":false,
+        "city":"New York",
+        "languages": ["English", "French"]
+    },
+    {
+        "name": "Sam",
+        "age": 26,
+        "married": true,
+        "city":"Berlin",
+        "languages": ["English", "Dutch"]
+    }
+]

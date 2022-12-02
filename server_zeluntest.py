@@ -4,24 +4,25 @@ class server_test():
     def __init__(self) -> None:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__address = ('127.0.0.1', 6000)
-        self.client = []
+        self.client = {}
         self.__MAXBYTES = 65535
+        
     def start(self):
         try:
             self.sock.bind(self.__address)
         except:
             print('except Error!')
-        print('已成功bind...')
+        print(f'{self.__address} 已成功bind...')
         self.recv()
     def recv(self):
         while True:
-            data, address = self.sock.recvfrom(self.__MAXBYTES)
+            data, address = self.sock.recvfrom(self.__MAXBYTES)     # <- data is a bytes, address is our IP information
             print('已開啟Thread...') 
             threading.Thread(target=self.handle_message, args=(data, address)).start()
     def handle_text(self, data, address):
-        while True:
+        # while True:
             # try:
-            text = data.decode('utf-8')
+            text = data.decode('utf-8')                  # This step change data(bytes) -> text(string)
             print(f'用戶{address} :{text}')
             self.handle_message(text = text, address = address)
             # except:
@@ -30,25 +31,42 @@ class server_test():
             #     break
 
     def handle_message(self, text, address):
-        message = json.loads(text)
-        print(f"{message} 's datatype is {type(message)}")
-        print(f'The client {address} says: {message} ')
-        match message['type']:
-            case "1":
-                nickname = message['nickname']
-                print(nickname)
-                cli = {"nickname":nickname, 'address':address}
-                self.client.append(cli)
+        message = json.loads(text)          # json.loads() is convert string into dictionary
+                                            # Here's string is for JSON?
+        
+        print(f'The client {address} says: {message},  Recive Enter Request!')
 
-                """
-                    為何這邊要有一個x ?
-                """
-                x = {"type": "2", "isAllow": "Yes"}
-                text = json.dumps(x)
-                data = text.encode('utf-8')
-                self.sock.sendto(data, address)
-            
+        
+        match message['type']:
+            case 1:
+                self.nickname = message['nickname']
+                self.client[self.nickname] = address
                 
+                print(f"Case 1's :{self.client}")
+                """
+                    因為要確認連接
+                """
+                x = {"type": 2, "isAllow": True} 
+                text = json.dumps(x).encode('utf-8')      # json.dumps() is convert json object to string
+                
+                self.sock.sendto(text, address)
+
+            case 3:
+                msgdic = {
+                    'type': 4
+                }
+                text = json.dumps(msgdic).encode('utf-8')
+                self.sock.sendto(text, address)
+                msgdic = {
+                    'type': 5,
+                    'nickname':self.nickname,
+                    'message': message['message']
+                }                
+                text = json.dumps(msgdic).encode('utf-8')
+                for client in self.client.values():
+                    if client != address:
+                        self.sock.sendto(text, client)
+                        print(f'Transport {text}, {client}')
 
 server = server_test()
 server.start()
